@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
 
 const CATEGORIES = ["식비", "카페", "교통", "쇼핑", "구독", "기타"] as const;
 
@@ -30,7 +31,26 @@ function dateLabel(date: string) {
 export default function Home() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [open, setOpen] = useState(false);
-  const [nextId, setNextId] = useState(1);
+  const [error, setError] = useState("");
+
+  async function load() {
+    const { data, error } = await supabase
+      .from("expenses")
+      .select("id, amount, place, category, spent_on, memo")
+      .order("created_at", { ascending: false });
+    if (error) return setError(error.message);
+    setExpenses(data.map(({ spent_on, ...rest }) => ({ ...rest, date: spent_on })) as Expense[]);
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function remove(id: number) {
+    const { error } = await supabase.from("expenses").delete().eq("id", id);
+    if (error) return setError(error.message);
+    setExpenses((prev) => prev.filter((x) => x.id !== id));
+  }
 
   const [amount, setAmount] = useState("");
   const [place, setPlace] = useState("");
@@ -59,14 +79,19 @@ export default function Home() {
     setOpen(true);
   }
 
-  function submit(ev: React.FormEvent) {
+  async function submit(ev: React.FormEvent) {
     ev.preventDefault();
-    setExpenses((prev) => [
-      ...prev,
-      { id: nextId, amount: Number(amount), place: place.trim(), category, date, memo: memo.trim() },
-    ]);
-    setNextId(nextId + 1);
+    const { error } = await supabase.from("expenses").insert({
+      amount: Number(amount),
+      place: place.trim(),
+      category,
+      spent_on: date,
+      memo: memo.trim(),
+    });
+    if (error) return setError(error.message);
+    setError("");
     setOpen(false);
+    load();
   }
 
   return (
@@ -75,7 +100,8 @@ export default function Home() {
       <p className="month">{Number(thisMonth.slice(5))}월 지출</p>
       <h1 className="total">{won(monthTotal)}</h1>
 
-      {groups.length === 0 && <p className="empty">아직 지출 내역이 없어요</p>}
+      {error && <p className="empty">오류: {error}</p>}
+      {!error && groups.length === 0 && <p className="empty">아직 지출 내역이 없어요</p>}
 
       {groups.map(([d, items]) => (
         <section className="group" key={d}>
@@ -94,7 +120,7 @@ export default function Home() {
                 <button
                   className="item-del"
                   aria-label="삭제"
-                  onClick={() => setExpenses((prev) => prev.filter((x) => x.id !== e.id))}
+                  onClick={() => remove(e.id)}
                 >
                   ×
                 </button>
