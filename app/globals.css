@@ -1,0 +1,39 @@
+:root {
+  --bg: #fafafa;
+  --fg: #111;
+  --muted: #888;
+  --line: #e8e8e8;
+  --card: #fff;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+main { max-width: 480px; margin: 0 auto; padding: 24px 20px 96px; }
+.title { font-size: 14px; color: var(--muted); margin: 0; }
+.month { font-size: 13px; color: var(--muted); margin: 24px 0 4px; }
+.total { font-size: 44px; font-weight: 700; letter-spacing: -1px; margin: 0 0 32px; }
+.group { margin-bottom: 24px; }
+.group-head { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); gap: 12px; }
+.item-main { min-width: 0; }
+.item-place { font-size: 16px; }
+.item-sub { font-size: 12px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-right { display: flex; align-items: center; }
+.item-amount { font-size: 16px; font-weight: 600; white-space: nowrap; }
+.item-del { background: none; border: 0; color: var(--muted); font-size: 18px; padding: 4px 6px; cursor: pointer; }
+.empty { color: var(--muted); text-align: center; padding: 48px 0; font-size: 14px; }
+.fab { position: fixed; right: 20px; bottom: 20px; width: 56px; height: 56px; border-radius: 50%; border: 0; background: var(--fg); color: #fff; font-size: 28px; cursor: pointer; }
+.sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,.3); display: flex; align-items: flex-end; justify-content: center; }
+.sheet { background: var(--card); width: 100%; max-width: 480px; border-radius: 16px 16px 0 0; padding: 20px; max-height: 92vh; overflow-y: auto; }
+.sheet h2 { font-size: 16px; margin: 0 0 16px; }
+.field { display: block; margin-bottom: 14px; }
+.field span { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.field input, .field select { width: 100%; font-size: 16px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--fg); font-family: inherit; }
+.actions { display: flex; gap: 8px; margin-top: 8px; }
+.btn { flex: 1; font-size: 16px; padding: 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--fg); cursor: pointer; }
+.btn.primary { background: var(--fg); color: #fff; border-color: var(--fg); }
