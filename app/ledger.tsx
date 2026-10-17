@@ -48,7 +48,50 @@ export default function Ledger() {
     }, {}),
   ).sort(([a], [b]) => b.localeCompare(a));
 
+  const [scanning, setScanning] = useState(false);
+  const [scanNote, setScanNote] = useState("");
+
+  // 긴 변 1600px JPEG로 줄여서 업로드 크기 제한을 피함
+  async function toJpegBase64(file: File) {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bmp.width * scale);
+    canvas.height = Math.round(bmp.height * scale);
+    canvas.getContext("2d")!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", 0.85).split(",")[1];
+  }
+
+  async function scanReceipt(file: File) {
+    setScanning(true);
+    setScanNote("");
+    try {
+      const { data } = await supabase.auth.getSession();
+      const res = await fetch("/api/receipt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session?.access_token}` },
+        body: JSON.stringify({ image: await toJpegBase64(file), mimeType: "image/jpeg" }),
+      });
+      const r = await res.json();
+      if (!res.ok) return setScanNote(`${r.error ?? "영수증을 읽지 못했어요"}. 직접 입력해주세요.`);
+      setAmount(r.amount ? String(r.amount) : "");
+      setPlace(r.place ?? "");
+      setDate(r.date ?? "");
+      const missing = [!r.amount && "금액", !r.place && "사용처", !r.date && "날짜"].filter(Boolean);
+      setScanNote(
+        missing.length
+          ? `${missing.join(", ")}은(는) 읽지 못했어요. 직접 입력해주세요.`
+          : "읽은 내용을 채웠어요. 확인 후 저장하세요.",
+      );
+    } catch {
+      setScanNote("영수증을 읽지 못했어요. 직접 입력해주세요.");
+    } finally {
+      setScanning(false);
+    }
+  }
+
   function openForm() {
+    setScanNote("");
     setAmount("");
     setPlace("");
     setCategory(CATEGORIES[0]);
@@ -76,7 +119,6 @@ export default function Ledger() {
     <main>
       <div className="topbar">
         <p className="title">종현 가게부</p>
-        <button className="link" onClick={() => supabase.auth.signOut()}>잠금</button>
       </div>
       <div className="tabs">
         <button className={view === "list" ? "on" : ""} onClick={() => setView("list")}>내역</button>
@@ -129,6 +171,21 @@ export default function Ledger() {
         <div className="sheet-bg" onClick={() => setOpen(false)}>
           <form className="sheet" onClick={(e) => e.stopPropagation()} onSubmit={submit}>
             <h2>지출 입력</h2>
+            <label className="btn receipt-btn">
+              {scanning ? "영수증 읽는 중…" : "영수증 사진으로 채우기"}
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                disabled={scanning}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = "";
+                  if (f) scanReceipt(f);
+                }}
+              />
+            </label>
+            {scanNote && <p className="scan-note">{scanNote}</p>}
             <label className="field">
               <span>금액</span>
               <input type="number" inputMode="numeric" min={1} required autoFocus value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />

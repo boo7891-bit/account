@@ -53,3 +53,5 @@ main { max-width: 480px; margin: 0 auto; padding: 24px 20px 96px; }
 .bar-fill { height: 100%; background: var(--fg); border-radius: 4px; }
 .bar-amount { text-align: right; white-space: nowrap; }
 .bar-amount em { font-style: normal; color: var(--muted); font-size: 12px; margin-left: 6px; }
+.receipt-btn { display: block; text-align: center; margin-bottom: 14px; }
+.scan-note { font-size: 13px; color: var(--muted); margin: -4px 0 14px; }
